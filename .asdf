@@ -4,10 +4,13 @@
 (in-package :cl-user)
 
 (setf asdf:*central-registry*
-  '(*default-pathname-defaults*
-    #p"../measures/"
-    #p"../zipcodes/"
-    #p"../google/"))
+  `(*default-pathname-defaults*
+    ,(or (probe-file #p"../measures/")
+	 (probe-file #p"measures/"))
+    ,(or (probe-file #p"../zipcodes/")
+	 (probe-file #p"zipcodes/"))
+    ,(or (probe-file #p"../google/")
+	 (probe-file #p"google/"))))
 
 asdf::
 (defmethod source-file-type ((c cl-source-file) (s module)) "cl")
