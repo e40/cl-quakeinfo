@@ -5,9 +5,9 @@
 
 (setf asdf:*central-registry*
   '(*default-pathname-defaults*
-    #p"measures/"
-    #p"zipcodes/"
-    #p"google/"))
+    #p"../measures/"
+    #p"../zipcodes/"
+    #p"../google/"))
 
 asdf::
 (defmethod source-file-type ((c cl-source-file) (s module)) "cl")
