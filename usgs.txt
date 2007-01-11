@@ -255,12 +255,12 @@ Google Maps API key.  Something like this:
 Then, you are ready to start up Allegro CL in the directory where you
 unpacked the source files, type 
 
-  :ld .asdf
+  :ld load.cl
 
 That should print something like this:
 
-  cl-user(3): :ld .asdf
-  ; Loading /home/layer/src/usgs/.asdf
+  cl-user(3): :ld load.cl
+  ; Loading /home/layer/src/usgs/load.cl
   ;   Fast loading /backup/acl/acl80/code/asdf.001
   ;;; Installing asdf patch, version 1
   ; loading system definition from /home/layer/src/usgs/usgs.asd into
