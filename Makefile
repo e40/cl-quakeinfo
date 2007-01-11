@@ -1,6 +1,6 @@
 # $Id$
 
-SOURCE_FILES = Makefile .asdf usgs.cl usgs.asd usgs.txt
+ROOT_SOURCE_FILES = Makefile .asdf usgs.cl usgs.asd usgs.txt
 
 default: all
 
