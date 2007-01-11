@@ -1,4 +1,3 @@
-
 	Earthquake data via the USGS website with Common Lisp
 
 Recently we had a bunch of small earthquakes in the Oakland, CA area.
@@ -34,12 +33,11 @@ own location.  Fortunately, Googles Maps
 [http://www.google.com/apis/maps/documentation/] provides this
 information.  Their API requires that you supply a key assigned to
 you.  (You can obtain a key from Google here
-[http://www.google.com/apis/maps/signup.html].)
+[http://www.google.com/apis/maps/signup.html].)  NOTE: see the
+installation instructions below for where to put the key.
 
 That makes it fairly easy to write a function place-to-location:
 
-  cl-user(7): (place-to-location "Oakland, CA")
-  #<location 37.804443,-122.26972>
   cl-user(8): (place-to-location "Berkeley, CA")
   #<location 37.871666,-122.27167>
   cl-user(9): (location-to-place (place-to-location "Berkeley, CA"))
@@ -52,9 +50,9 @@ That makes it fairly easy to write a function place-to-location:
   #<location 37.86319,-122.25365>
   cl-user(12): 
 
-Lastly, to help me get a feel for how to filter the data I wanted to
-know the distance between to locations.  I used the "Great Circle
-Distance" Formula.  Some examples (distances are in miles):
+To help me get a feel for how to filter the data I wanted to know the
+distance between to locations.  I used the "Great Circle Distance"
+Formula.  Some examples (distances are in miles):
 
   cl-user(17): (distance-between
 		(place-to-location "Boulder, CO")
@@ -74,16 +72,17 @@ contains location coordinates for each zip code, and the data includes
 the names of the cities for each zip code.  It's a fairly simple matter
 to find the nearest match for a set of coordinates.
 
-I also found it convenient to make `measures' module that contained a
-`location' object, made up of `latitude' and `longitude'.  The
-`measures' API also contains the `distance-between' and
-`location-near-p' functions.
+Speaking of coordinates, how should they be represented in Lisp?  At
+first I was using a cons of latitude and longitude.  However, using
+`car' and `cdr' to access the `slots' got old and I created a
+`measures' module to define the `location' object.  The `measures' API
+also contains the `distance-between' and `location-near-p' functions.
 
 The `zipcodes' module provides the `location-to-zip' function, and the
 `google-maps' module uses this to provide `location-to-place' and
 `place-to-location'.
 
-Putting it all together, we can do something like this:
+Putting it all together, we can do things like this:
 
   cl-user(8): (get-quake-info
 	       :period :week
@@ -126,7 +125,7 @@ north and south poles.
 The :period keyword value can be :hour, :day or :week.
 
 The :larger-than keyword is a filter on magnitude.  `nil' means all
-quakes.  `2.0' means those later than 2.0.
+quakes.  `2.0' means those larger than 2.0.
 
 *******************************************************************************
 IMPLEMENTATION DETAILS
@@ -144,67 +143,103 @@ large CSV file and has the following form:
   "35004", "AL", " 33.606379", " -86.50249", "Moody", "Alabama"
   ...
 
-There 33,178 entries in the file.  It is best if the compiled version
-of the module is not dependent on this data file, so the data file has
-to be read at compile time and saved in the fasl file.  I'm thinking a
-special variable bound to a simple vector of zip code structures.
+There 33,178 entries in the file.  The first questions that come to
+mind are:
 
-It would be simple matter to create, at compile time, a simple vector
-of zip structs, and to use make-load-form on the structure objects so
-they can be written out by the compiler.  It turns out that because
-the compiler must do circularity detection and using make-load-form is
-fairly expensive, having the compiler write out a simple vector of
-33000+ struct objects is a very slow process, one that creates a lot
-of garbage and uses lots of memory.  So, we use an alternate
-implementation to read in the data file so the data can be constructed
-at load time: at compile time save each slot of the raw data in a
-separate vector, and assemble these vectors into the final data
-structure at load time.  It turns out this implementation much more
-efficient than the naive implementation discussed first, above.  The
-details:
+  * How to efficiently represent the data in the fasl file (because I
+    don't want to be dependent at fasl load time on the CSV file)?
 
-This happens at compile time:
+  * How to efficiently represent the data in memory?
 
-(defvar *zipcode-data*
-    #.(let ((zips
-	     (prog2
-		 (progn (format t "reading zips.cvs...")
-			(force-output))
-		 (read-zips-csv 
-		  (merge-pathnames "zips.csv" *compile-file-pathname*))
-	       (format t "done~%"))))
-	(list 'list
-	      (vector-of zips #'zip-code)
-	      (vector-of zips #'zip-state-abbrev)
-	      (vector-of zips (lambda (zip)
-				(let ((loc (zip-location zip)))
-				  (cons (location-latitude loc)
-					(location-longitude loc)))))
-	      (vector-of zips #'zip-city)
-	      (vector-of zips #'zip-state))))
+For representation in the fasl file, I first did the obvious and
+straightforward simple vector of zip structs written out to the fasl
+file.  It turns out that because the compiler must do circularity
+detection and using make-load-form is fairly expensive, having the
+compiler write out a simple vector of 33000+ struct objects is a very
+slow process, one that creates a lot of garbage and uses lots of
+memory.
 
-The #. means that the compiler reads the form returned by evaluating
-the (let ...).  That form is a list of vectors containing the target
-data.  Then, we do this at load time:
+So, to avoid the make-load-form on the structure objects, I decided to
+spread the slots of all the zip code structures across a bunch of
+vectors--strings and numbers should easily be handled by the compiler
+in an efficient manor.  In other words, the zip code data in the fasl
+file would consist of one vector per structure slot, each element of
+the vector being the slot value from one zip code structure instance.
+And, this would all be created at compile time.  Like this:
 
-(defvar *zipcodes*
-    (destructuring-bind (codes abbrevs locations cities states)
-	*zipcode-data*
-      (do* ((max (length codes))
-	    (zips (make-array max))
-	    (i 0 (1+ i)))
-	  ((= i max) zips)
-	(setf (svref zips i)
-	  (make-zip :code (svref codes i)
-		    :state-abbrev (svref abbrevs i)
-		    :location (let ((loc (svref locations i)))
-				(make-location
-				 :latitude (car loc)
-				 :longitude (cdr loc)))
-		    :city (svref cities i)
-		    :state (svref states i))))))
+  (defvar *zipcode-data*
+      #.(let ((zips
+	       (prog2
+		   (progn (format t "reading zips.cvs...")
+			  (force-output))
+		   (read-zips-csv 
+		    (merge-pathnames "zips.csv" *compile-file-pathname*))
+		 (format t "done~%"))))
+	  (list 'list
+		(vector-of zips #'zip-code)
+		(vector-of zips #'zip-state-abbrev)
+		(vector-of zips (lambda (zip)
+				  (let ((loc (zip-location zip)))
+				    (cons (location-latitude loc)
+					  (location-longitude loc)))))
+		(vector-of zips #'zip-city)
+		(vector-of zips #'zip-state))))
 
-(setq *zipcode-data* nil) ;; no longer needed, GC it
+For those not familiar with #., it is used to evaluate Lisp code at
+`read' time.  In this case, since the expression above is being read
+by the compiler, the code in the #.(let ...) is being evaluated at
+compiler read time.  The result of reading that form is a list, like
+this:
+
+  (list #<...vector of zip codes...>
+	...
+	#<...vector of states...>)
+
+That list is then compiled into the fasl file as the value of the
+*zipcode-data* special variable.  When the fasl file is loaded into
+Lisp, *zipcode-data* will be a list of simple vectors.  *zipcode-data*
+is then used to construct the data structure we actually want to use,
+which leads us to...
+
+How to efficiently represent the data in memory?  I know, because of
+the nature of the types of searchs of the data I will do, that it
+sequential searches on the data are necessary.  To me, that means
+simple vector.  (If, for example, only a single zip to location mapping
+was needed, then a more appropriate data structure would have been a
+hash table.)  So, at load time, we reassemble the list of simple
+vectors into our single simple vector of zip structs:
+
+  (defvar *zipcodes*
+      (destructuring-bind (codes abbrevs locations cities states)
+	  *zipcode-data*
+	(do* ((max (length codes))
+	      (zips (make-array max))
+	      (i 0 (1+ i)))
+	    ((= i max) zips)
+	  (setf (svref zips i)
+	    (make-zip :code (svref codes i)
+		      :state-abbrev (svref abbrevs i)
+		      :location (let ((loc (svref locations i)))
+				  (make-location
+				   :latitude (car loc)
+				   :longitude (cdr loc)))
+		      :city (svref cities i)
+		      :state (svref states i))))))
+
+For those that have not used `destructuring-bind', it merely takes a
+list a `destructures' is, or breaks it down into component parts.  In
+this case, I'm taking a flat list and assigning each element to a
+variable.  The first being `codes' and the fifth being `states',
+corresponding to the first and fifth elements of the list held by
+*zipcode-data*.
+
+Next, we nil out *zipcode-data* so the list of simple vectors can be
+garbage collected, since we no longer need them.
+
+  (setq *zipcode-data* nil)
+
+This same technique can be used on other structure types.  Nothing in
+the solution is specific to the `zip' struct object.
 
 *******************************************************************************
 INSTALLATION
