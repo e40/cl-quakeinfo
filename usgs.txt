@@ -224,25 +224,25 @@ unpacked the source files, type
 
 That should print something like this:
 
-  cl-user(2): :ld .asdf
-  ; Loading /home/layer/src/.asdf
+  cl-user(3): :ld .asdf
+  ; Loading /home/layer/src/usgs/.asdf
   ;   Fast loading /backup/acl/acl80/code/asdf.001
   ;;; Installing asdf patch, version 1
-  ; loading system definition from /home/layer/src/usgs.asd into
+  ; loading system definition from /home/layer/src/usgs/usgs.asd into
   ; #<The asdf0 package>
-  ;   Loading /home/layer/src/usgs.asd
-  ; registering #<system usgs @ #x71d10132> as usgs
-  ; loading system definition from google/google.asd into #<The asdf0 package>
+  ;   Loading /home/layer/src/usgs/usgs.asd
+  ; registering #<system usgs @ #x71d13832> as usgs
+  ; loading system definition from ../google/google.asd into #<The asdf0 package>
   ;   Loading /home/layer/src/google/google.asd
-  ; registering #<system google @ #x71d1a762> as google
-  ; loading system definition from zipcodes/zipcodes.asd into
+  ; registering #<system google @ #x71d1e01a> as google
+  ; loading system definition from ../zipcodes/zipcodes.asd into
   ; #<The asdf0 package>
   ;   Loading /home/layer/src/zipcodes/zipcodes.asd
-  ; registering #<system zipcodes @ #x71d231aa> as zipcodes
-  ; loading system definition from measures/measures.asd into
+  ; registering #<system zipcodes @ #x71d26a92> as zipcodes
+  ; loading system definition from ../measures/measures.asd into
   ; #<The asdf0 package>
   ;   Loading /home/layer/src/measures/measures.asd
-  ; registering #<system measures @ #x71d2c082> as measures
+  ; registering #<system measures @ #x71d2f99a> as measures
   ;;; Compiling file /home/layer/src/measures/measures.cl
   ;;; Writing fasl file /home/layer/src/measures/measures.fasl
   ;;; Fasl write complete
@@ -259,7 +259,7 @@ That should print something like this:
   ;   Fast loading /home/layer/src/zipcodes/zip-util.fasl
   reading zips.cvs...done
   ;;; Writing fasl file /home/layer/src/zipcodes/zip-api.fasl
-  9095168 bytes have been tenured, next gc will be global.
+  9094928 bytes have been tenured, next gc will be global.
   See the documentation for variable *global-gc-behavior* for more information.
   ;;; Fasl write complete
   ;   Fast loading /home/layer/src/zipcodes/zip-package.fasl
@@ -273,7 +273,7 @@ That should print something like this:
   ;;; Writing fasl file /home/layer/src/google/google-maps.fasl
   ;;; Fasl write complete
   ;   Fast loading /home/layer/src/google/google-maps.fasl
-  ;;; Compiling file /home/layer/src/usgs.cl
+  ;;; Compiling file /home/layer/src/usgs/usgs.cl
   ;   Fast loading /backup/acl/acl80/code/regexp2.001
   ;;; Installing regexp2 patch, version 1
   ;     Fast loading /backup/acl/acl80/code/yacc.001
@@ -286,10 +286,10 @@ That should print something like this:
   ;         Fast loading from bundle code/iordefs.fasl.
   ;           Fast loading /backup/acl/acl80/code/efmacs.002
   ;;; Installing efmacs patch, version 1
-  ;;; Writing fasl file /home/layer/src/usgs.fasl
+  ;;; Writing fasl file /home/layer/src/usgs/usgs.fasl
   ;;; Fasl write complete
-  ;   Fast loading /home/layer/src/usgs.fasl
-  ;     Loading /home/layer/src/google-maps-key.cl
+  ;   Fast loading /home/layer/src/usgs/usgs.fasl
+  ;     Loading /home/layer/src/usgs/google-maps-key.cl
   ;; Try this:
 
   (get-quake-info :period :week
@@ -297,7 +297,7 @@ That should print something like this:
     :within 1.0
     :reference-location (place-to-location
 			   "555 12th St, Oakland, CA, 94607, US"))
-  cl-user(3): 
+  cl-user(4): 
 
 Now, you can evaluate the form printed just before the prompt to see
 if it works for you.
