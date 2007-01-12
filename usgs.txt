@@ -29,7 +29,7 @@ two things to make it useful:
 An implication of (1) is that I needed an easy way to convert a place
 name to coordinates, because if I want the facility to work for more
 than just my location, others will need an easy way to look up their
-own location.  Fortunately, Googles Maps
+own location.  Fortunately, Google Maps
 [http://www.google.com/apis/maps/documentation/] provides this
 information.  Their API requires that you supply a key assigned to
 you.  (You can obtain a key from Google here
@@ -51,7 +51,7 @@ That makes it fairly easy to write a function place-to-location:
   cl-user(12): 
 
 To help me get a feel for how to filter the data I wanted to know the
-distance between to locations.  I used the "Great Circle Distance"
+distance between two locations.  I used the "Great Circle Distance"
 Formula.  Some examples (distances are in miles):
 
   cl-user(17): (distance-between
@@ -162,7 +162,7 @@ memory.
 So, to avoid the make-load-form on the structure objects, I decided to
 spread the slots of all the zip code structures across a bunch of
 vectors--strings and numbers should easily be handled by the compiler
-in an efficient manor.  In other words, the zip code data in the fasl
+in an efficient manner.  In other words, the zip code data in the fasl
 file would consist of one vector per structure slot, each element of
 the vector being the slot value from one zip code structure instance.
 And, this would all be created at compile time.  Like this:
@@ -202,8 +202,8 @@ is then used to construct the data structure we actually want to use,
 which leads us to...
 
 How to efficiently represent the data in memory?  I know, because of
-the nature of the types of searchs of the data I will do, that it
-sequential searches on the data are necessary.  To me, that means
+the nature of the types of searchs of the data I will do, that
+sequential searches on the data will be necessary.  To me, that means
 simple vector.  (If, for example, only a single zip to location mapping
 was needed, then a more appropriate data structure would have been a
 hash table.)  So, at load time, we reassemble the list of simple
@@ -227,8 +227,8 @@ vectors into our single simple vector of zip structs:
 		      :state (svref states i))))))
 
 For those that have not used `destructuring-bind', it merely takes a
-list a `destructures' is, or breaks it down into component parts.  In
-this case, I'm taking a flat list and assigning each element to a
+list and `destructures' it, or breaks it down into component parts.
+In this case, I'm taking a flat list and assigning each element to a
 variable.  The first being `codes' and the fifth being `states',
 corresponding to the first and fifth elements of the list held by
 *zipcode-data*.
