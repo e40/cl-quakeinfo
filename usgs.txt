@@ -340,4 +340,6 @@ That should print something like this:
   cl-user(4): 
 
 Now, you can evaluate the form printed just before the prompt to see
-if it works for you.
+if it works for you.  Make sure you are in the `cl-user' package when
+you do evaluate the above form.  NOTE: the IDE starts up in the
+`cg-user' package.

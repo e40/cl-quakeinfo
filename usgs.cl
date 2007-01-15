@@ -97,10 +97,10 @@
 
 (format t ";; Try this:~%")
 (pprint
- '(cl-user::get-quake-info
+ '(get-quake-info
    :period :week
    :larger-than nil
    :within 1.0
    :reference-location 
-   (util.google.maps::place-to-location
+   (util.google.maps:place-to-location
     "555 12th St, Oakland, CA, 94607, US")))
