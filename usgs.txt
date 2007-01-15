@@ -245,12 +245,17 @@ the solution is specific to the `zip' struct object.
 INSTALLATION
 *******************************************************************************
 
-Unpack the .tgz file.  In the same directory where you unpack the
-files, create a file called "google-maps-key.cl" which contains your
-Google Maps API key.  Something like this:
+Unpack the .tgz file.  You will now have a usgs/ directory where you
+unpacked.  Into this directory create a file called
+"google-maps-key.cl" which contains your Google Maps API key, like
+this:
 
   (setq util.google.maps:*default-key*
-    "...long string of characters obtained from google...")
+    "...key obtained from google...")
+
+Where ``...key obtained from google...'' is the key you received from
+Google.  The formatting of this file is important: the key must be a
+string and bound to the variable util.google.maps:*default-key*.
 
 Then, you are ready to start up Allegro CL in the directory where you
 unpacked the source files, type 
