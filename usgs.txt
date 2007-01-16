@@ -10,7 +10,7 @@ available here:
    http://earthquake.usgs.gov/eqcenter/recenteqsww/catalogs/
 
 Possible formats of interest to me: XML (RSS) and CSV.  I decided to
-use the CSV format, comma separate files, since XML seemed like
+use the CSV format, comma separated files, since XML seemed like
 overkill.
 
 What I wanted to do was to find recent earthquakes near where I lived.
@@ -143,8 +143,8 @@ large CSV file and has the following form:
   "35004", "AL", " 33.606379", " -86.50249", "Moody", "Alabama"
   ...
 
-There 33,178 entries in the file.  The first questions that come to
-mind are:
+There are 33,178 entries in the file.  The first questions that come
+to mind are:
 
   * How to efficiently represent the data in the fasl file (because I
     don't want to be dependent at fasl load time on the CSV file)?
@@ -202,7 +202,7 @@ is then used to construct the data structure we actually want to use,
 which leads us to...
 
 How to efficiently represent the data in memory?  I know, because of
-the nature of the types of searchs of the data I will do, that
+the nature of the types of searches of the data I will do, that
 sequential searches on the data will be necessary.  To me, that means
 simple vector.  (If, for example, only a single zip to location mapping
 was needed, then a more appropriate data structure would have been a
