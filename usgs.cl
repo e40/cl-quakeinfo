@@ -9,7 +9,7 @@
 
 (eval-when (compile eval load)
   (require :regexp2)
-  (require :update)			; for update-http-copy-file
+  (require :aserve)			; for http-copy-file
   (require :measures)
   (use-package :util.measures)
   (require :zipcodes)
@@ -49,7 +49,7 @@
   (and (probe-file temp-file) (ignore-errors (delete-file temp-file)))
   (format t ";; Downloading data...")
   (force-output)
-  (system.update::update-http-copy-file url temp-file)
+  (net.aserve.client:http-copy-file url temp-file)
   (format t "done.~%")
   (force-output)
   (let (header-line line lines location
