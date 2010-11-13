@@ -1,17 +1,12 @@
-# $Id$
-
-ROOT_SOURCE_FILES = Makefile load.cl usgs.cl usgs.asd usgs.txt
 
 default: all
 
-include ../makefile.include
+%.fasl : %.asd
+	mlisp -qq -batch -L asdf-setup -W \
+	      -e '(asdf:compile-system :$*)' \
+	      -kill
 
-all: usgs.fasl
-
-usgs.fasl: ../measures/measures.fasl ../zipcodes/zipcodes.fasl \
-	   ../google/google-maps.fasl
-
-install: FORCE
+all: clean cl-quakeinfo.fasl
 
 clean: FORCE
 	rm -f *.fasl

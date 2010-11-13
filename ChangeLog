@@ -1,8 +1,0 @@
-2007-05-02  Kevin Layer  <layer@relay.known.net>
-
-	* usgs.cl: use http-copy-file from net.aserve.client
-
-2007-01-11  Kevin Layer  <layer@relay.known.net>
-
-	* .asdf (source-file-type): add comments
-
