@@ -5,9 +5,8 @@ I thought it would be fun to use Common Lisp to retrieve and
 display information about recent earthquakes.
 
 I found that the USGS website has hourly, daily and weekly quake data
-available here:
-
-   http://earthquake.usgs.gov/eqcenter/recenteqsww/catalogs/
+available
+[here](http://earthquake.usgs.gov/eqcenter/recenteqsww/catalogs/).
 
 Possible formats of interest are XML (RSS) and CSV.  I decided to
 use the CSV format, comma separated files, since XML seemed like
@@ -16,8 +15,8 @@ overkill.
 What I wanted to do was to find recent earthquakes near where I lived.
 However, the data from USGS is of the form:
 
-  Src,Eqid,Version,Datetime,Lat,Lon,Magnitude,Depth,NST
-  ak,00074326,5,"January 09, 2007 23:59:55 GMT",64.1478,-150.1976,1.8,1.00,07
+    Src,Eqid,Version,Datetime,Lat,Lon,Magnitude,Depth,NST
+    ak,00074326,5,"January 09, 2007 23:59:55 GMT",64.1478,-150.1976,1.8,1.00,07
 
 Time, location (latitude and longitude in decimal degrees) and
 magnitude, among other bits of data.  The data is nice, but I needed
@@ -65,8 +64,8 @@ north and south poles.
 
 The :period keyword value can be :hour, :day or :week.
 
-The :larger-than keyword is a filter on magnitude.  `nil' means all
-quakes.  `2.0' means those larger than 2.0.
+The :larger-than keyword is a filter on magnitude.  *nil* means all
+quakes.  2.0 means those larger than magnitude 2.0.
 
 ## Installation
 
