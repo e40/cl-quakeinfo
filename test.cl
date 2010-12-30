@@ -10,9 +10,18 @@
 
 (load "..//google-maps-key.cl")
 
-(get-quake-info (place-to-location "Oakland, CA")
-		:period :week
-		:larger-than nil
-		:within 1.0)
+#+allegro (setq tpl:*print-length* nil)
+
+(pprint
+ (get-quake-info (place-to-location "Oakland, CA")
+		 :period :week
+		 :larger-than nil
+		 :within 1.0))
+(pprint
+ (get-quake-info (place-to-location "Oakland, CA")
+		 :period :week
+		 :convert-date t
+		 :larger-than nil
+		 :within 1.0))
 
 (exit 0)
