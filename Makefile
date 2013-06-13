@@ -2,7 +2,7 @@
 default: all
 
 %.fasl : %.asd
-	mlisp -qq -batch -W -e '(asdf:compile-system :$*)' -kill
+	mlisp -qq -batch -W -e '(require :asdf)' -e '(asdf:compile-system :$*))' -kill
 
 all: clean cl-quakeinfo.fasl test
 

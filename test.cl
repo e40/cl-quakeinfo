@@ -1,6 +1,8 @@
 
 (in-package :cl-user)
 
+(eval-when (compile eval load) (require :asdf))
+
 (setf asdf:*central-registry*
   '(*default-pathname-defaults*
     #p"~layer/src/cl-geocode/"))
