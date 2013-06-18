@@ -9,10 +9,11 @@
 
 (asdf:disable-output-translations)
 
-(when (not asdf:*central-registry*)
-  (setf asdf:*central-registry*
-    '(*default-pathname-defaults*
-      #p"../cl-geocode/")))
+(if* asdf:*central-registry*
+   then (push #p"../cl-geocode/" asdf:*central-registry*)
+   else (setf asdf:*central-registry*
+	  '(*default-pathname-defaults*
+	    #p"../cl-geocode/")))
 
 (asdf:defsystem cl-quakeinfo
     :default-component-class cl-quakeinfo-source-file

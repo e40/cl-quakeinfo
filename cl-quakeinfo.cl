@@ -7,27 +7,27 @@
 
 (eval-when (compile eval load)
   #+allegro (require :regexp2)
+  #+allegro (require :datetime)
   #+allegro (require :aserve) ;; for http-copy-file
   (use-package :cl-geocode))
 
 (in-package :cl-user)
 
 (defvar *usgs-gov-url-prefix* 
-    "http://earthquake.usgs.gov/eqcenter/recenteqsww/catalogs/")
+    "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/")
 
-(defvar *quake-info-re*
-    (let ((re (concatenate 'simple-string
-		"^"
-		"[^,]+,"
-		"[^,]+,"
-		"[^,]+,"
-		"\"([^\"]+)\","		;date
-		"([^,]+),"		;latitude
-		"([^,]+),"		;longitude
-		"([^,]+),"		;magnitude
-		)))
-      #+allegro (compile-re re)
-      #+sbcl (cl-ppcre:create-scanner re)))
+(defvar *quake-info-re* nil)
+(setq *quake-info-re*
+  (let ((re (concatenate 'simple-string
+	      "^"
+	      "([^,]+),"		;ISO 8601 date/time
+	      "([^,]+),"		;latitude
+	      "([^,]+),"		;longitude
+	      "[^,]+,"
+	      "([^,]+),"		;magnitude
+	      )))
+    #+allegro (compile-re re)
+    #+sbcl (cl-ppcre:create-scanner re)))
 
 (defun get-quake-info (reference-location
 		       &key (period :week)
@@ -38,15 +38,14 @@
 			    (temp-file "/tmp/quakeinfo.txt")
 			    filter
 			    convert-date
-		       &aux url
-			    (re *quake-info-re*))
+		       &aux url)
   (setq url
     (format nil "~a~a"
 	    *usgs-gov-url-prefix*
 	    (case period
-	      (:week "eqs7day-M1.txt")
-	      (:day  "eqs1day-M1.txt")
-	      (:hour "eqs1hour-M1.txt")
+	      (:week "all_week.csv")
+	      (:day  "all_day.csv")
+	      (:hour "all_hour.csv")
 	      (t (error "bad period: ~s." period)))))
   
   (and (probe-file temp-file) (ignore-errors (delete-file temp-file)))
@@ -89,7 +88,7 @@
 	    #+allegro
 	    (multiple-value-bind (found whole xdate xlatitude xlongitude
 				  xmagnitude)
-		(match-re re line)
+		(match-re *quake-info-re* line)
 	      (declare (ignore whole))
 	      (when (not found)
 		(warn "couldn't parse line: ~a~%" line)
@@ -134,62 +133,10 @@
 	    (go top)))
       #+mswindows (delete-file temp-file))))
 
-;; Crikey, why use this date format????
 (defun quake-date-to-ut (date)
-  ;; Turn "December 25, 2006 13:43:07 GMT" into a ut.
-  (flet ((cvt (str start-end)
-	   (let ((res 0))
-	     (do ((i (car start-end) (1+ i))
-		  (end (cdr start-end)))
-		 ((>= i end) res)
-	       (setq res 
-		 (+ (* 10 res)
-		    (- (char-code (schar str i)) #.(char-code #\0))))))))
-    #-allegro (error "quake-date-to-ut not converted yet")
-    #+allegro
-    (multiple-value-bind (found whole
-			  day-name month day year
-			  hour minute second)
-	(match-re
-	 "([A-Z][a-z]+),[ ]+([A-Z][a-z]+)[ ]+(\\d+),[ ]+(\\d+)[ ]+(\\d+):(\\d+):(\\d+) (GMT|UTC)"
-	 date
-	 :return :index)
-      (declare (ignore whole day-name))
-      (when found
-	(return-from quake-date-to-ut
-	  (encode-universal-time
-	   (cvt date second)
-	   (cvt date minute)
-	   (cvt date hour)
-	   (cvt date day)
-	   (compute-month date (car month))
-	   (cvt date year)
-	   0))))
-    
-    (error "Couldn't parse date: date-string")))
-
-(defun compute-month (str start-index)
-  ;; return the month number given a 3char rep of the string
-  (case (schar str start-index)
-    (#\A  
-     (if* (eq (schar str (1+ start-index)) #\p)
-	then 4				; april
-	else 8))			; august
-    (#\D 12)				; dec
-    (#\F 2)				; feb
-    (#\J
-     (if* (eq (schar str (1+ start-index)) #\a)
-	then 1				; jan
-      elseif (eq (schar str (+ 2 start-index)) #\l)
-	then 7				; july
-	else 6))			; june
-    (#\M
-     (if* (eq (schar str (+ 2 start-index)) #\r)
-	then 3				; march
-	else 5))			; may
-    (#\N 11)				; nov
-    (#\O 10)				;oct
-    (#\S 9)))
+  (truncate
+   ;; quake data, apparently, is to fractional seconds
+   (util.date-time:date-time-to-ut (util.date-time:date-time date))))
 
 #+allegro
 (setq *global-gc-behavior* :auto) ;; get rid of GC related messages
