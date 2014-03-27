@@ -6,7 +6,7 @@ display information about recent earthquakes.
 
 I found that the USGS website has hourly, daily and weekly quake data
 available
-[here](http://earthquake.usgs.gov/eqcenter/recenteqsww/catalogs/).
+[here](http://earthquake.usgs.gov/earthquakes/catalogs/).
 
 Possible formats of interest are XML (RSS) and CSV.  I decided to
 use the CSV format, comma separated files, since XML seemed like
@@ -70,7 +70,7 @@ quakes.  2.0 means those larger than magnitude 2.0.
 ## Installation
 
 You need to download and install cl-geocode and cl-quakeinfo and to
-register, with ASDF, the *.asd* files.  Then, you just need to:
+register, with ASDF, the *.asd files.  Then, you just need to:
 
     cl-user(1): (asdf:load-system :usgs)
     ; loading system definition from /home/layer/src/usgs/usgs.asd into
@@ -99,9 +99,10 @@ register, with ASDF, the *.asd* files.  Then, you just need to:
       :within 1.0)
     t
 
-Don't forget to set your Google Maps API key:
+If you have one, don't forget to set your Google Maps API key:
 
     cl-user(2): (setq cl-geocode:*default-key* "...")
 
 where what is in the quotes is the API key you obtained from Google.
 See the instructions in cl-geocode for more information.
+NB: Not necessary with the new Google Maps API version 3.
