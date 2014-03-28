@@ -33,8 +33,8 @@
 			    (period :week)
 			    (within
 			     ;; distance in decimal degrees
-			     3.0)
-			    (larger-than 1.0)
+			     3.0f0)
+			    (larger-than 1.0f0)
 			    (temp-file "/tmp/quakeinfo.txt")
 			    filter
 			    convert-date
@@ -60,7 +60,8 @@
   (force-output)
 
   (let (header-line line lines location
-	date latitude longitude magnitude)
+	date latitude longitude magnitude
+        (*read-default-float-format* 'single-float))
     (unwind-protect
 	(with-open-file (s temp-file)
 	  ;; This trick only works on UNIX:
@@ -147,5 +148,5 @@
   (format t ";; Try this:~%~W~%"
           '(get-quake-info
             (place-to-location "Oakland, CA")
-            :period :week :larger-than nil :within 1.0))
+            :period :week :larger-than nil :within 1.0f0))
   (finish-output))
