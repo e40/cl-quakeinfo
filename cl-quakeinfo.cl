@@ -13,6 +13,9 @@
 
 (in-package :cl-user)
 
+;; See
+;;  http://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php
+;; for more information.
 (defvar *usgs-gov-url-prefix* 
     "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/")
 
@@ -30,7 +33,8 @@
     #+sbcl (cl-ppcre:create-scanner re)))
 
 (defun get-quake-info (reference-location
-		       &key (period :week)
+		       &key (verbose t)
+			    (period :week)
 			    (within
 			     ;; distance in decimal degrees
 			     3.0)
@@ -49,8 +53,9 @@
 	      (t (error "bad period: ~s." period)))))
   
   (and (probe-file temp-file) (ignore-errors (delete-file temp-file)))
-  (format t ";; Downloading quake data...")
-  (force-output)
+  (when verbose
+    (format t ";; Downloading quake data...")
+    (force-output))
   #+allegro (net.aserve.client:http-copy-file url temp-file)
   #+sbcl
   (let ((p (run-program "/usr/bin/curl" (list "-L" url "-o" temp-file)
@@ -58,8 +63,9 @@
     (when (not (zerop (process-exit-code p)))
       (error "Failed to retrieve data via curl.  Exit code ~d."
 	     (process-exit-code p))))
-  (format t "done.~%")
-  (force-output)
+  (when verbose
+    (format t "done.~%")
+    (force-output))
   
   (let (header-line line lines location
 	date latitude longitude magnitude)
