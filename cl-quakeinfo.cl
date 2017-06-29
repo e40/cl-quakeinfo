@@ -5,22 +5,18 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(eval-when (compile eval load)
-  #+allegro (require :regexp2)
-  #+allegro (require :datetime)
-  #+allegro (require :aserve) ;; for http-copy-file
-  (use-package :cl-geocode))
+(defpackage :cl-quakeinfo
+  (:use :common-lisp :cl-geocode #+allegro :excl #-allegro acl-compat.excl))
 
-(in-package :cl-user)
+(in-package :cl-quakeinfo)
 
 ;; See
 ;;  http://earthquake.usgs.gov/earthquakes/feed/v1.0/csv.php
 ;; for more information.
-(defvar *usgs-gov-url-prefix* 
-    "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/")
+(defparameter *usgs-gov-url-prefix*
+  "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/")
 
-(defvar *quake-info-re* nil)
-(setq *quake-info-re*
+(defparameter *quake-info-re*
   (let ((re (concatenate 'simple-string
 	      "^"
 	      "([^,]+),"		;ISO 8601 date/time
@@ -37,8 +33,8 @@
 			    (period :week)
 			    (within
 			     ;; distance in decimal degrees
-			     3.0)
-			    (larger-than 1.0)
+			     3.0f0)
+			    (larger-than 1.0f0)
 			    (temp-file "/tmp/quakeinfo.txt")
 			    filter
 			    convert-date
@@ -51,28 +47,25 @@
 	      (:day  "all_day.csv")
 	      (:hour "all_hour.csv")
 	      (t (error "bad period: ~s." period)))))
-  
+
   (and (probe-file temp-file) (ignore-errors (delete-file temp-file)))
   (when verbose
     (format t ";; Downloading quake data...")
     (force-output))
   #+allegro (net.aserve.client:http-copy-file url temp-file)
-  #+sbcl
-  (let ((p (run-program "/usr/bin/curl" (list "-L" url "-o" temp-file)
-			:wait t)))
-    (when (not (zerop (process-exit-code p)))
-      (error "Failed to retrieve data via curl.  Exit code ~d."
-	     (process-exit-code p))))
-  (when verbose
-    (format t "done.~%")
-    (force-output))
-  
+  #-allegro
+  (with-open-file (s temp-file :direction :output :element-type 'character)
+    (write-sequence (drakma:http-request url :method :get) s))
+  (format t "done.~%")
+  (force-output)
+
   (let (header-line line lines location
-	date latitude longitude magnitude)
+	date latitude longitude magnitude
+        (*read-default-float-format* 'single-float))
     (unwind-protect
 	(with-open-file (s temp-file)
 	  ;; This trick only works on UNIX:
-	  #-mswindows (delete-file temp-file)
+	  #-os-windows (delete-file temp-file)
 	  (setq header-line (read-line s nil s))
 	  (when (eq header-line s) (error "no header?"))
 	  (tagbody
@@ -81,9 +74,9 @@
 	    (when (eq line s)
 	      (return-from get-quake-info
 		(nreverse lines)))
-	    #+sbcl
+	    #-allegro
 	    (multiple-value-bind (found res-vec)
-		(cl-ppcre:scan-to-strings re line)
+		(cl-ppcre:scan-to-strings *quake-info-re* line)
 	      (when (not found)
 		(warn "couldn't parse line: ~a~%" line)
 		(go top))
@@ -103,7 +96,7 @@
 		    latitude xlatitude
 		    longitude xlongitude
 		    magnitude xmagnitude))
-	    
+
 	    (setq latitude
 	      (or (ignore-errors (read-from-string latitude))
 		  (error "bad latitude: ~s" latitude)))
@@ -137,19 +130,23 @@
 			      magnitude)
 			lines))))
 	    (go top)))
-      #+mswindows (delete-file temp-file))))
+      #+os-windows (delete-file temp-file))))
 
 (defun quake-date-to-ut (date)
+  #+allegro
   (truncate
    ;; quake data, apparently, is to fractional seconds
-   (util.date-time:date-time-to-ut (util.date-time:date-time date))))
+   (util.date-time:date-time-to-ut (util.date-time:date-time date)))
+  #-allegro
+  (cl-date-time-parser:parse-date-time date))
 
-#+allegro
-(setq *global-gc-behavior* :auto) ;; get rid of GC related messages
+;; TODO: move this somewhere else
+#+allegro (setq excl:*global-gc-behavior* :auto) ;; get rid of GC related messages
 
-(format t ";; Try this:~%")
-(pprint
- '(get-quake-info
-   (place-to-location "Oakland, CA")
-   :period :week
-   :larger-than nil :within 1.0))
+(let ((*package* (find-package :common-lisp))
+      (*print-pretty* t))
+  (format t ";; Try this:~%~W~%"
+          '(get-quake-info
+            (place-to-location "Oakland, CA")
+            :period :week :larger-than nil :within 1.0f0))
+  (finish-output))

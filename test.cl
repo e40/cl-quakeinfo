@@ -18,12 +18,12 @@
  (get-quake-info (place-to-location "Oakland, CA")
 		 :period :week
 		 :larger-than nil
-		 :within 1.0))
+		 :within 1.0f0))
 (pprint
  (get-quake-info (place-to-location "Oakland, CA")
 		 :period :week
 		 :convert-date t
 		 :larger-than nil
-		 :within 1.0))
+		 :within 1.0f0))
 
 (exit 0)
